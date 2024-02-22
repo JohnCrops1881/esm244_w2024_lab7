@@ -1,0 +1,79 @@
+---
+title: "ingmangabriel_lab7_code"
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+    toc: true
+execute:
+  warning: false
+  message: false
+---
+
+## Code for Lab 7
+
+```{r fart}
+
+library(tidyverse)
+library(tidymodels)
+library(here)
+
+```
+
+# Tidymodels with a classification task
+
+```{r tidymodelintro}
+
+t_df <- read_csv(here('data/titanic/titanic_survival.csv'))
+
+surv_df <- t_df %>% 
+  mutate(survived = factor(survived),
+         pclass = factor(pclass)) %>% 
+  select(-cabin, -ticket, -parch, -sib_sp)
+
+```
+
+
+```{r barplotsurvivor}
+
+ggplot(surv_df, aes(x = pclass, fill = survived)) +
+  geom_bar()
+
+ggplot(surv_df, aes(x = age, fill = survived)) +
+  geom_histogram()
+
+ggplot(surv_df, aes(x = survived, y = fare)) +
+  geom_boxplot()
+
+```
+
+
+# basic binary logistic regression
+```{r}
+
+f1 <- survived ~sex + pclass + fare
+f2 <- survived ~passenger_id + embarked
+
+blr1 <- glm(formula = f1, data = surv_df, family = binomial)
+blr2 <- glm(formula = f2, data = surv_df, family = binomial)
+summary(blr2)
+
+```
+
+### pseudocode for comparing the two models
+
+Compare the models with an information criterion method. 
+
+```{r comparingmodels}
+
+surv_df %>%
+  group_by(survived) %>% 
+  summarize(n = n()) %>% 
+  ungroup() %>% 
+  mutate(prop = n / sum(n))
+
+set.seed(123)
+
+surv_split <- initial_split(surv_df, prop = 0.8, strata = survived)
+```
+
